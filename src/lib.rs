@@ -5,7 +5,7 @@ use pyo3::types::PyBytes;
 
 /// Python bindings for rocksdb.
 #[pymodule]
-fn rocksdb(_py: Python, m: &PyModule) -> PyResult<()> {
+fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     /// A RocksDB database.
     #[pyclass]
     struct RocksDB {

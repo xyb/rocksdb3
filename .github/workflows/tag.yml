@@ -1,0 +1,117 @@
+name: packaging
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  wheel:
+    name: python${{ matrix.python-version }}-${{ matrix.platform.python-architecture }} ${{ matrix.platform.os }}
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8] # This list needs to be kept in sync with maturin_build_wheel.py.
+        platform: [
+          { os: "ubuntu-latest",  python-architecture: "x64", rust-target: "x86_64-unknown-linux-gnu" },
+          { os: "macOS-latest",   python-architecture: "x64", rust-target: "x86_64-apple-darwin" },
+          { os: "windows-latest", python-architecture: "x64", rust-target: "x86_64-pc-windows-msvc" },
+          # { os: "windows-latest", python-architecture: "x86", rust-target: "i686-pc-windows-msvc" },
+        ]
+      fail-fast: false
+    env:
+      CARGO_BUILD_TARGET: ${{ matrix.platform.rust-target }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-py${{ matrix.python-version }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-py${{ matrix.python-version }}-
+            ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.platform.python-architecture }}
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.platform.rust-target }}
+          default: true
+          profile: minimal
+      - name: Set up llvm for windows
+        if: runner.os == 'Windows'
+        run: choco install llvm -y
+      - name: install maturin
+        run: pip install maturin
+        # On Linux we'll run Maturin in a Docker container.
+        if: matrix.platform.os != 'ubuntu-latest'
+      - name: build wheel
+        id: build_wheel
+        run: python -u .github/workflows/maturin_build_wheel.py
+      - name: install PyGithub
+        run: pip install PyGithub
+      - name: upload release asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TAG: ${{ github.ref }}
+        run: python -u .github/workflows/upload_github_release_asset.py ${{ steps.build_wheel.outputs.wheel_path }}
+
+  # The sdist could be built automatically by each of the wheel jobs above (if
+  # we didn't set the --no-sdist flag), but we give it its own job here to
+  # avoid having different platforms race to upload it. The platform shouldn't
+  # matter for generating the sdist, but in case it ever does, it would be
+  # better to be consistent.
+  sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+          architecture: x64
+      - name: install maturin
+        run: pip install maturin
+      - name: build sdist
+        id: build_sdist
+        run: python -u .github/workflows/maturin_build_sdist.py
+      - name: install PyGithub
+        run: pip install PyGithub
+      - name: upload release asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TAG: ${{ github.ref }}
+        run: python -u .github/workflows/upload_github_release_asset.py ${{ steps.build_sdist.outputs.sdist_path }}
+
+  pypi:
+    name: pypi
+    needs:
+      - wheel
+      - sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+          architecture: x64
+      - name: install PyGithub
+        run: pip install PyGithub
+      - name: install twine
+        run: pip install twine
+      - name: twine upload
+        env:
+          GITHUB_TAG: ${{ github.ref }}
+          TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: python -u .github/workflows/twine_upload.py

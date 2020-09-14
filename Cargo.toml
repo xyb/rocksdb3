@@ -1,15 +1,10 @@
 [package]
-# `name = "blake3"` is a bit confusing, because that's the same as the official
-# Rust implementation that this is wrapping. However, this crate doesn't get
-# published to crates.io. Instead, it gets packaged by Maturin and published on
-# PyPI. Installing this with `pip install blake3` is better than something
-# redundant like `pip install PyBLAKE3-py`.
-name = "rocksdb"
-version = "0.1.0"
+name = "rocksdb3"
+version = "0.0.1"
 authors = ["Xie Yanbo <xieyanbo@gmail.com>"]
 description = "Python bindings for the Rust rocksdb crate"
-repository = "https://github.com/xyb/rocksdb-py"
-homepage = "https://github.com/xyb/rocksdb-py"
+repository = "https://github.com/xyb/rocksdb3"
+homepage = "https://github.com/xyb/rocksdb3"
 license = "Apache-2.0"
 readme = "README.md"
 edition = "2018"
@@ -20,5 +15,3 @@ crate-type = ["cdylib"]
 [dependencies]
 rocksdb = { version = "0.15.0", features = ["snappy", "lz4", "zstd", "zlib", "bzip2"] }
 pyo3 = { version = "0.12.0", features = ["extension-module"] }
-arrayref = "0.3.6"
-hex = "0.4.2"
