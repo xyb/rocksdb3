@@ -15,3 +15,17 @@ crate-type = ["cdylib"]
 [dependencies]
 rocksdb = { version = "0.15.0", features = ["snappy", "lz4", "zstd", "zlib", "bzip2"] }
 pyo3 = { version = "0.12.0", features = ["extension-module"] }
+
+[package.metadata.maturin]
+classifier = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+]
