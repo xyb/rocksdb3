@@ -111,7 +111,7 @@ jobs:
       - name: twine upload
         env:
           GITHUB_TAG: ${{ github.ref }}
-          TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
+          # TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: python -u .github/workflows/twine_upload.py
