@@ -24,6 +24,20 @@ Please do not use it in production.
 pip install rocksdb3
 ```
 
+## Examples
+
+```python
+import rocksdb3
+
+db = rocksdb3.open_default('db_path')
+assert db.get(b'my key') is None
+db.put(b'my key', b'my value')
+assert db.get(b'my key') == b'my value'
+db.delete(b'my key')
+assert db.get(b'my key') is None
+del db  # auto close db
+```
+
 ## build
 
 ```
