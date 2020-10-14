@@ -16,6 +16,7 @@ Please do not use it in production.
 ## Status
   - [x] basic open/put/get/delete/close
   - [ ] iterator
+      > depends on pyo3's [non-copy iterator support](https://github.com/PyO3/pyo3/issues/1085)
   - [ ] write batch
   - [ ] destroy/repair
 
