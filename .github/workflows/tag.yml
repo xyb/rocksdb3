@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     strategy:
       matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8] # This list needs to be kept in sync with maturin_build_wheel.py.
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9] # This list needs to be kept in sync with maturin_build_wheel.py.
         platform: [
           { os: "ubuntu-latest",  python-architecture: "x64", rust-target: "x86_64-unknown-linux-gnu" },
           { os: "macOS-latest",   python-architecture: "x64", rust-target: "x86_64-apple-darwin" },
@@ -34,7 +34,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-py${{ matrix.python-version }}-
             ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.platform.python-architecture }}
@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.8
           architecture: x64
@@ -100,7 +100,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.8
           architecture: x64
