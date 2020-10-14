@@ -1,6 +1,6 @@
 [package]
 name = "rocksdb3"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Xie Yanbo <xieyanbo@gmail.com>"]
 description = "Python bindings for the Rust rocksdb crate"
 repository = "https://github.com/xyb/rocksdb3"
@@ -28,4 +28,5 @@ classifier = [
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
 ]
