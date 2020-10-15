@@ -1,8 +1,9 @@
 use pyo3::create_exception;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyString};
 use rocksdb::DB;
+use std::str;
 
 create_exception!(rocksdb3, RocksDBError, PyRuntimeError);
 
@@ -13,10 +14,17 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     #[pyclass]
     struct RocksDB {
         db: DB,
+        path: Vec<u8>,
     }
 
     #[pymethods]
     impl RocksDB {
+        /// The path of the database.
+        #[getter(path)]
+        fn get_path<'py>(&self, py: Python<'py>) -> &'py PyString {
+            return PyString::new(py, str::from_utf8(&self.path).unwrap());
+        }
+
         /// Return the bytes associated with a key value.
         ///
         /// Positional arguments:
@@ -79,8 +87,11 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     /// - `path` (required): Path of the database to open.
     #[pyfn(m, "open_default")]
     fn open_default(path: &str) -> PyResult<RocksDB> {
-        match DB::open_default(&path) {
-            Ok(db) => Ok(RocksDB { db: db }),
+        match DB::open_default(path) {
+            Ok(db) => Ok(RocksDB {
+                db: db,
+                path: path.as_bytes().to_vec(),
+            }),
             Err(e) => {
                 return Err(RocksDBError::new_err(format!(
                     "can not open {}: {}",
