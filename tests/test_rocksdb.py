@@ -1,4 +1,6 @@
 import sys
+from pathlib import Path
+
 import pytest
 
 try:
@@ -64,3 +66,15 @@ def test_delete(db):
     db.delete(b'hello')
 
     assert db.get(b'hello') is None
+
+
+def test_destroy(tmp_path):
+    db_path = tmp_path / 'db'
+    db = rocksdb3.open_default(str(db_path))
+    path = db.path
+    del db
+    assert Path(path).exists()
+
+    rocksdb3.destroy(path)
+
+    assert not Path(path).exists()

@@ -2,7 +2,7 @@ use pyo3::create_exception;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
-use rocksdb::DB;
+use rocksdb::{Options, DB};
 use std::str;
 
 create_exception!(rocksdb3, RocksDBError, PyRuntimeError);
@@ -99,6 +99,17 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 )))
             }
         }
+    }
+
+    /// Destroy the contents of the specified database.
+    /// **Be very careful using this method.**
+    ///
+    /// Positional arguments:
+    /// - `path` (required): Path of the database to destroy.
+    #[pyfn(m, "destroy")]
+    fn destroy(path: &str) -> PyResult<()> {
+        let _ = DB::destroy(&Options::default(), path);
+        return Ok(());
     }
 
     m.add_class::<RocksDB>()?;

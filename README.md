@@ -30,13 +30,15 @@ pip install rocksdb3
 ```python
 import rocksdb3
 
-db = rocksdb3.open_default('db_path')
+path = './db_path'
+db = rocksdb3.open_default(path)
 assert db.get(b'my key') is None
 db.put(b'my key', b'my value')
 assert db.get(b'my key') == b'my value'
 db.delete(b'my key')
 assert db.get(b'my key') is None
 del db  # auto close db
+rocksdb3.destroy(path)
 ```
 
 ## build
