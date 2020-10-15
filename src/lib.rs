@@ -108,8 +108,15 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     /// - `path` (required): Path of the database to destroy.
     #[pyfn(m, "destroy")]
     fn destroy(path: &str) -> PyResult<()> {
-        let _ = DB::destroy(&Options::default(), path);
-        return Ok(());
+        match DB::destroy(&Options::default(), path) {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                return Err(RocksDBError::new_err(format!(
+                    "can not destroy {}: {}",
+                    path, e,
+                )))
+            }
+        }
     }
 
     m.add_class::<RocksDB>()?;
