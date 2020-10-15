@@ -29,9 +29,8 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-py${{ matrix.python-version }}-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-py${{ matrix.python-version }}-
             ${{ runner.os }}-${{ matrix.platform.python-architecture }}-cargo-${{ matrix.rust-toolchain }}-
       - name: Set up Python
         uses: actions/setup-python@v2
