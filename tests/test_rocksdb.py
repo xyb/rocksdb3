@@ -86,3 +86,20 @@ def test_destroy_should_not_delete_db_that_is_in_using(tmp_path):
 
     with pytest.raises(rocksdb3.RocksDBError):
         rocksdb3.destroy(db.path)
+
+
+def test_repair(tmp_path):
+    db_path = tmp_path / 'db'
+    db = rocksdb3.open_default(str(db_path))
+    path = db.path
+    del db
+
+    rocksdb3.repair(path)
+
+
+def test_repair_should_not_be_used_on_db_that_is_in_using(tmp_path):
+    db_path = tmp_path / 'db'
+    db = rocksdb3.open_default(str(db_path))
+
+    with pytest.raises(rocksdb3.RocksDBError):
+        rocksdb3.repair(db.path)

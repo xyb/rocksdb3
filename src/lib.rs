@@ -101,6 +101,28 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
         }
     }
 
+    /// Repair the database cannot be opened.
+    ///
+    /// If a DB cannot be opened, you may attempt to call this method to
+    /// resurrect as much of the contents of the database as possible.
+    /// Some data may be lost, so be careful when calling this function
+    /// on a database that contains important information.
+    ///
+    /// Positional arguments:
+    /// - `path` (required): Path of the database to repair.
+    #[pyfn(m, "repair")]
+    fn repair(path: &str) -> PyResult<()> {
+        match DB::repair(&Options::default(), path) {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                return Err(RocksDBError::new_err(format!(
+                    "can not repair {}: {}",
+                    path, e,
+                )))
+            }
+        }
+    }
+
     /// Destroy the contents of the specified database.
     /// **Be very careful using this method.**
     ///
