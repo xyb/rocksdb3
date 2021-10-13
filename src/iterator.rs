@@ -4,9 +4,10 @@ use pyo3::types::{PyBytes, PyTuple};
 use rocksdb::{DBIterator, IteratorMode, DB};
 use std::sync::Arc;
 
+// stabilize drop order, see https://github.com/rust-lang/rfcs/blob/246ff86b320a72f98ed2df92805e8e3d48b402d6/text/1857-stabilize-drop-order.md
 struct UnsafeDBIterator {
-    _db: Arc<DB>,
     inner: DBIterator<'static>,
+    _db: Arc<DB>,
 }
 
 impl UnsafeDBIterator {
