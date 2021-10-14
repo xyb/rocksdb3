@@ -1,9 +1,12 @@
+mod iterator;
+
 use pyo3::create_exception;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 use rocksdb::{Options, DB};
 use std::str;
+use std::sync::Arc;
 
 create_exception!(rocksdb3, RocksDBError, PyRuntimeError);
 
@@ -13,7 +16,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     /// A RocksDB database.
     #[pyclass]
     struct RocksDB {
-        db: DB,
+        db: Arc<DB>,
         path: Vec<u8>,
     }
 
@@ -79,6 +82,10 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 }
             }
         }
+
+        fn get_iter(&mut self) -> PyResult<iterator::RocksDBIterator> {
+            Ok(iterator::RocksDBIterator::new(self.db.clone()))
+        }
     }
 
     /// Opens a database with default options.
@@ -89,7 +96,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     fn open_default(path: &str) -> PyResult<RocksDB> {
         match DB::open_default(path) {
             Ok(db) => Ok(RocksDB {
-                db: db,
+                db: Arc::new(db),
                 path: path.as_bytes().to_vec(),
             }),
             Err(e) => {
