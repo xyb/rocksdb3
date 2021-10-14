@@ -103,3 +103,12 @@ def test_repair_should_not_be_used_on_db_that_is_in_using(tmp_path):
 
     with pytest.raises(rocksdb3.RocksDBError):
         rocksdb3.repair(db.path)
+
+
+def test_iter(db):
+    db.put(b'hello', b'world')
+    db.put(b'author', b'xyb')
+    it = db.get_iter()
+
+    assert next(it) == (b'author', b'xyb')
+    assert next(it) == (b'hello', b'world')
