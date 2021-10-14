@@ -17,8 +17,7 @@ Please do not use it in production.
   - [x] precompiled [wheel binaries](https://pypi.org/project/rocksdb3/#files) for Linux, Windows, macOS, on python 3.5, 3.6, 3.7, 3.8, 3.9
   - [x] basic open/put/get/delete/close
   - [x] destroy/repair
-  - [ ] iterator
-      > depends on pyo3's [non-copy iterator support](https://github.com/PyO3/pyo3/issues/1085)
+  - [x] iterator
   - [ ] write batch
 
 ## Install
@@ -36,6 +35,7 @@ db = rocksdb3.open_default(path)
 assert db.get(b'my key') is None
 db.put(b'my key', b'my value')
 assert db.get(b'my key') == b'my value'
+assert list(db.get_iter()) == [(b'my key', b'my value')]
 db.delete(b'my key')
 assert db.get(b'my key') is None
 del db  # auto close db
