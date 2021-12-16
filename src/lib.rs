@@ -86,6 +86,18 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
         fn get_iter(&mut self) -> PyResult<iterator::RocksDBIterator> {
             Ok(iterator::RocksDBIterator::new(self.db.clone()))
         }
+
+        /// Tries to catch up with the primary by reading as much as possible from the log files.
+        fn try_catch_up_with_primary(&mut self) -> PyResult<()> {
+            match self.db.try_catch_up_with_primary() {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    return Err(RocksDBError::new_err(format!(
+                        "can not catch up with the primary: {}", e,
+                    )))
+                }
+            }
+        }
     }
 
     /// Opens a database with default options.
@@ -103,6 +115,27 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 return Err(RocksDBError::new_err(format!(
                     "can not open {}: {}",
                     path, e,
+                )))
+            }
+        }
+    }
+
+    /// Opens the database as a read-only secondary instance.
+    ///
+    /// Positional arguments:
+    /// - `primary_path` (required): Path of the primary database instance.
+    /// - `secondary_path` (required): Path of the secondary database to open.
+    #[pyfn(m, "open_as_secondary")]
+    fn open_as_secondary(primary_path: &str, secondary_path: &str) -> PyResult<RocksDB> {
+        match DB::open_as_secondary(&Options::default(), primary_path, secondary_path) {
+            Ok(db) => Ok(RocksDB {
+                db: Arc::new(db),
+                path: secondary_path.as_bytes().to_vec(),
+            }),
+            Err(e) => {
+                return Err(RocksDBError::new_err(format!(
+                    "can not open secondary instance {} with {}: {}",
+                    secondary_path, primary_path, e,
                 )))
             }
         }
