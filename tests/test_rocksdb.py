@@ -112,3 +112,29 @@ def test_iter(db):
 
     assert next(it) == (b'author', b'xyb')
     assert next(it) == (b'hello', b'world')
+
+
+def test_secondary(tmp_path):
+    primary_path = tmp_path / 'primary'
+    db_primary = rocksdb3.open_default(str(primary_path))
+    db_primary.put(b'hello', b'world')
+
+    secondary_path = tmp_path / 'secondary'
+    db_secondary = rocksdb3.open_as_secondary(str(primary_path),
+                                              str(secondary_path))
+
+    assert list(db_secondary.get_iter()) == [(b'hello', b'world')]
+
+
+def test_secondary_catch_up_primary(tmp_path):
+    primary_path = tmp_path / 'primary'
+    db_primary = rocksdb3.open_default(str(primary_path))
+    secondary_path = tmp_path / 'secondary'
+    db_secondary = rocksdb3.open_as_secondary(str(primary_path),
+                                              str(secondary_path))
+    assert db_secondary.get(b'author') == None
+    db_primary.put(b'author', b'xyb')
+
+    db_secondary.try_catch_up_with_primary()
+
+    assert db_secondary.get(b'author') == b'xyb'
