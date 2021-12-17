@@ -12,14 +12,14 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     strategy:
       matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
+        python-version: ["3.5", "3.6", "3.7", "3.8", "3.9", "3.10"]
         # rust-toolchain: [stable, beta, nightly]
         rust-toolchain: [stable]
         platform: [
           { os: "ubuntu-latest",  python-architecture: "x64", rust-target: "x86_64-unknown-linux-gnu" },
           { os: "macOS-latest",   python-architecture: "x64", rust-target: "x86_64-apple-darwin" },
-          # { os: "windows-latest", python-architecture: "x64", rust-target: "x86_64-pc-windows-msvc" },
-          # { os: "windows-latest", python-architecture: "x86", rust-target: "i686-pc-windows-msvc" },
+          { os: "windows-latest", python-architecture: "x64", rust-target: "x86_64-pc-windows-msvc" },
+          { os: "windows-latest", python-architecture: "x86", rust-target: "i686-pc-windows-msvc" },
         ]
       fail-fast: false
     env:
@@ -48,9 +48,15 @@ jobs:
           target: ${{ matrix.platform.rust-target }}
           default: true
           profile: minimal
-      - name: Install llvm
+          override: true
+      - name: Install LLVM and Clang # required for bindgen to work, see https://github.com/rust-lang/rust-bindgen/issues/1797
+        uses: KyleMayes/install-llvm-action@v1
         if: runner.os == 'Windows'
-        run: choco install llvm -y
+        with:
+          version: "11.0"
+          directory: ${{ runner.temp }}/llvm
+      - name: Set LIBCLANG_PATH
+        run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
       - name: Install pytest
         run: pip install pytest
       - name: Run build.py
