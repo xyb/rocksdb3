@@ -11,12 +11,13 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
     && ln -s $(which maturin) /usr/bin/maturin \
     && mkdir /io
 
-RUN curl -o llvm.xz 'https://releases.llvm.org/3.8.0/clang+llvm-3.8.0-linux-x86_64-centos6.tar.xz' \
+ENV LLVM_VERSION=3.9.0
+RUN curl -o llvm.xz 'https://releases.llvm.org/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-linux-x86_64-centos6.tar.xz' \
     && tar -xf llvm.xz \
-    && cd clang+llvm-3.8.0-linux-x86_64-centos6/ \
+    && cd clang+llvm-${LLVM_VERSION}-linux-x86_64-centos6/ \
     && cp -r * /usr/local/ \
     && cd ../ \
-    && rm -rf llvm.xz clang+llvm-3.8.0-linux-x86_64-centos6/
+    && rm -rf llvm.xz clang+llvm-${LLVM_VERSION}-linux-x86_64-centos6/
 
 WORKDIR /io
 
