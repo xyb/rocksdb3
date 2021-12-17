@@ -12,7 +12,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
     && mkdir /io
 
 ENV LLVM_VERSION=3.9.1
-RUN curl -o llvm.xz "https://releases.llvm.org/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-debian8.tar.xz" \
+RUN curl -o llvm.xz "https://releases.llvm.org/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz" \
     && tar -xf llvm.xz -C /usr/local/ --strip-components=1 \
     && rm -rf llvm.xz
 
