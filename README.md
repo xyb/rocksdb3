@@ -14,8 +14,9 @@ Please do not use it in production.
 [![License](https://img.shields.io/pypi/l/rocksdb3.svg)](https://github.com/xyb/rocksdb3/blob/master/LICENSE)
 
 ## Status
-  - [x] precompiled [wheel binaries](https://pypi.org/project/rocksdb3/#files) for Linux, Windows, macOS, on python 3.5, 3.6, 3.7, 3.8, 3.9
+  - [x] precompiled [wheel binaries](https://pypi.org/project/rocksdb3/#files) for Linux, Windows, macOS, on python 3.6, 3.7, 3.8, 3.9, 3.10
   - [x] basic open/put/get/delete/close
+  - [x] open as secondary instance
   - [x] destroy/repair
   - [x] iterator
   - [ ] write batch
