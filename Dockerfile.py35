@@ -1,0 +1,25 @@
+# For python 3.5
+# Uploaded as: xieyanbo/manylinux-maturin:llvm-3.9.1-py-3.5
+FROM quay.io/pypa/manylinux2014_x86_64:2020-10-28-9a5bf46
+
+ENV PATH /root/.cargo/bin:$PATH
+# Add all supported python versions
+ENV PATH /opt/python/cp35-cp35m/bin/:/opt/python/cp36-cp36m/bin/:/opt/python/cp37-cp37m/bin/:/opt/python/cp38-cp38/bin/:/opt/python/cp39-cp39/bin/:$PATH
+# Otherwise `cargo new` errors
+ENV USER root
+
+# The last version support python 3.5
+ENV MATURIN_VERSION=0.8.3
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    && python3 -m pip install --no-cache-dir cffi maturin==${MATURIN_VERSION} \
+    && ln -s $(which maturin) /usr/bin/maturin \
+    && mkdir /io
+
+ENV LLVM_VERSION=3.9.1
+RUN curl -o llvm.xz "https://releases.llvm.org/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz" \
+    && tar -xf llvm.xz -C /usr/local/ --strip-components=1 \
+    && rm -rf llvm.xz
+
+WORKDIR /io
+
+ENTRYPOINT ["/usr/bin/maturin"]
