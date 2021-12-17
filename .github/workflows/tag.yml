@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "*"
+    branches: ## debug
+      - "*"
 
 jobs:
   wheel:
@@ -44,6 +46,10 @@ jobs:
           target: ${{ matrix.platform.rust-target }}
           default: true
           profile: minimal
+          override: true
+      - name: Remove msys64 # Workaround to resolve link error with C:\msys64\mingw64\bin\libclang.dll
+        if: runner.os == 'Windows'
+        run: Remove-Item -LiteralPath "C:\msys64" -Force -Recurse
       - name: Set up llvm for windows
         if: runner.os == 'Windows'
         run: choco install llvm -y
