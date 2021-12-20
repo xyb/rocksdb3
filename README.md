@@ -13,6 +13,18 @@ Please do not use it in production.
 [![Support python versions](https://img.shields.io/pypi/pyversions/rocksdb3.svg)](https://pypi.org/project/rocksdb3/)
 [![License](https://img.shields.io/pypi/l/rocksdb3.svg)](https://github.com/xyb/rocksdb3/blob/master/LICENSE)
 
+## Why new wrapper
+There is already have [python-rocksdb](https://github.com/twmht/python-rocksdb),
+so why create a new wrapper for rocksdb?
+
+  - It's fun
+  - I'm learning Rust, this is my exprience
+  - PyO3 is fun, too
+  - Python-rocksdb is not actively maintained
+  - Python-rocksdb is not released with statically-linked
+    multiple-operating-system-supported wheel binaries
+  - Debugging out-of-bounds pointers is boring
+
 ## Status
   - [x] precompiled [wheel binaries](https://pypi.org/project/rocksdb3/#files) for Linux, Windows, macOS, on python 3.6, 3.7, 3.8, 3.9, 3.10
   - [x] basic open/put/get/delete/close
