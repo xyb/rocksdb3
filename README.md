@@ -26,7 +26,7 @@ so why create a new wrapper for rocksdb?
   - Debugging out-of-bounds pointers is boring
 
 ## Status
-  - [x] precompiled [wheel binaries](https://pypi.org/project/rocksdb3/#files) for Linux, Windows, macOS, on python 3.6, 3.7, 3.8, 3.9, 3.10
+  - [x] precompiled [wheel binaries](https://pypi.org/project/rocksdb3/#files) for Linux, Windows, macOS, on python 3.5, 3.6, 3.7, 3.8, 3.9, 3.10
   - [x] basic open/put/get/delete/close
   - [x] open as secondary instance
   - [x] destroy/repair
