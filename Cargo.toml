@@ -1,6 +1,6 @@
 [package]
 name = "rocksdb3"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Xie Yanbo <xieyanbo@gmail.com>"]
 description = "Python bindings for the Rust rocksdb crate"
 repository = "https://github.com/xyb/rocksdb3"
