@@ -138,3 +138,14 @@ def test_secondary_catch_up_primary(tmp_path):
     db_secondary.try_catch_up_with_primary()
 
     assert db_secondary.get(b'author') == b'xyb'
+
+
+def test_write_batch(db):
+    db.put(b'hello', b'world')
+
+    batch = rocksdb3.WriteBatch()
+    batch.put(b'author', b'xyb')
+    batch.delete(b'hello')
+    db.write(batch)
+
+    assert list(db.get_iter()) == []

@@ -1,21 +1,20 @@
+mod error;
 mod iterator;
+mod write_batch;
 
-use pyo3::create_exception;
-use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 use rocksdb::{Options, DB};
 use std::str;
 use std::sync::Arc;
 
-create_exception!(rocksdb3, RocksDBError, PyRuntimeError);
 
 /// Python bindings for rocksdb.
 #[pymodule]
 fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     /// A RocksDB database.
     #[pyclass]
-    struct RocksDB {
+    pub struct RocksDB {
         db: Arc<DB>,
         path: Vec<u8>,
     }
@@ -41,7 +40,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 Ok(Some(value)) => Ok(Some(PyBytes::new(py, &value))),
                 Ok(None) => return Ok(None),
                 Err(e) => {
-                    return Err(RocksDBError::new_err(format!(
+                    return Err(error::RocksDBError::new_err(format!(
                         "can not get key {}: {}",
                         key, e,
                     )))
@@ -59,7 +58,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
             match self.db.put(key.as_bytes(), value.as_bytes()) {
                 Ok(_) => Ok(()),
                 Err(e) => {
-                    return Err(RocksDBError::new_err(format!(
+                    return Err(error::RocksDBError::new_err(format!(
                         "can not put key {}: {}",
                         key, e,
                     )))
@@ -75,7 +74,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
             match self.db.delete(key.as_bytes()) {
                 Ok(_) => Ok(()),
                 Err(e) => {
-                    return Err(RocksDBError::new_err(format!(
+                    return Err(error::RocksDBError::new_err(format!(
                         "can not delete key {}: {}",
                         key, e,
                     )))
@@ -92,12 +91,25 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
             match self.db.try_catch_up_with_primary() {
                 Ok(_) => Ok(()),
                 Err(e) => {
-                    return Err(RocksDBError::new_err(format!(
+                    return Err(error::RocksDBError::new_err(format!(
                         "can not catch up with the primary: {}", e,
                     )))
                 }
             }
         }
+
+        /// Write apply the given `batch` to the database.
+        fn write(&mut self, batch: write_batch::WriteBatch) -> PyResult<()> {
+            match self.db.write(batch.batch) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    return Err(error::RocksDBError::new_err(format!(
+                        "write batch failed: {}", e,
+                    )))
+                }
+            }
+        }
+
     }
 
     /// Opens a database with default options.
@@ -112,7 +124,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 path: path.as_bytes().to_vec(),
             }),
             Err(e) => {
-                return Err(RocksDBError::new_err(format!(
+                return Err(error::RocksDBError::new_err(format!(
                     "can not open {}: {}",
                     path, e,
                 )))
@@ -133,7 +145,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 path: secondary_path.as_bytes().to_vec(),
             }),
             Err(e) => {
-                return Err(RocksDBError::new_err(format!(
+                return Err(error::RocksDBError::new_err(format!(
                     "can not open secondary instance {} with {}: {}",
                     secondary_path, primary_path, e,
                 )))
@@ -155,7 +167,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
         match DB::repair(&Options::default(), path) {
             Ok(()) => Ok(()),
             Err(e) => {
-                return Err(RocksDBError::new_err(format!(
+                return Err(error::RocksDBError::new_err(format!(
                     "can not repair {}: {}",
                     path, e,
                 )))
@@ -173,7 +185,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
         match DB::destroy(&Options::default(), path) {
             Ok(()) => Ok(()),
             Err(e) => {
-                return Err(RocksDBError::new_err(format!(
+                return Err(error::RocksDBError::new_err(format!(
                     "can not destroy {}: {}",
                     path, e,
                 )))
@@ -182,6 +194,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     }
 
     m.add_class::<RocksDB>()?;
-    m.add("RocksDBError", _py.get_type::<RocksDBError>())?;
+    m.add_class::<write_batch::WriteBatch>()?;
+    m.add("RocksDBError", _py.get_type::<error::RocksDBError>())?;
     Ok(())
 }
