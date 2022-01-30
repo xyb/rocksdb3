@@ -3,10 +3,11 @@ mod iterator;
 use pyo3::create_exception;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyString};
+use pyo3::types::{PyBytes, PyInt, PyString};
 use rocksdb::{Options, DB};
 use std::str;
 use std::sync::Arc;
+use std::time::Duration;
 
 create_exception!(rocksdb3, RocksDBError, PyRuntimeError);
 
@@ -115,6 +116,33 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 return Err(RocksDBError::new_err(format!(
                     "can not open {}: {}",
                     path, e,
+                )))
+            }
+        }
+    }
+
+    /// Opens the database with TTL compaction filter.
+    ///
+    /// Positional arguments:
+    /// - `path` (required): Path of the database to open.
+    /// - `duration` (required): Duration of the TTL.
+    #[pyfn(m, "open_with_ttl")]
+    fn open_with_ttl(path: &str, ttl: &PyInt) -> PyResult<RocksDB> {
+        let secs = ttl.extract::<u64>().unwrap();
+        let duration = Duration::from_secs(secs);
+
+        let mut opts = Options::default();
+        opts.create_if_missing(true);
+
+        match DB::open_with_ttl(&opts, path, duration) {
+            Ok(db) => Ok(RocksDB {
+                db: Arc::new(db),
+                path: path.as_bytes().to_vec(),
+            }),
+            Err(e) => {
+                return Err(RocksDBError::new_err(format!(
+                    "can not open with {} with ttl {} seconds: {}",
+                    path, duration.as_secs(), e,
                 )))
             }
         }
