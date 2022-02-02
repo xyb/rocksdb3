@@ -143,7 +143,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 Ok(inner.put(key.as_bytes(), value.as_bytes()))
             } else {
                 Err(RocksDBError::new_err(
-                    "batch writer is invalid. you need to create new one.",
+                    "batch writer is invalid. new writer is required",
                 ))
             }
         }
@@ -157,7 +157,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 Ok(inner.delete(key.as_bytes()))
             } else {
                 Err(RocksDBError::new_err(
-                    "batch writer is invalid. you need to create new one.",
+                    "batch writer is invalid. new writer is required",
                 ))
             }
         }
@@ -168,7 +168,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 Ok(inner.clear())
             } else {
                 Err(RocksDBError::new_err(
-                    "batch writer is invalid. you need to create new one.",
+                    "batch writer is invalid. new writer is required",
                 ))
             }
         }
@@ -180,7 +180,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
                 Ok(inner)
             } else {
                 Err(RocksDBError::new_err(
-                    "batch writer is invalid. you need to create new one.",
+                    "batch writer is invalid. new writer is required",
                 ))
             }
         }
