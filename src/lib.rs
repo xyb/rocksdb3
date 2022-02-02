@@ -4,7 +4,7 @@ use pyo3::create_exception;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyInt, PyString};
-use rocksdb::{Options, DB};
+use rocksdb::{Options, DB, WriteBatch};
 use std::str;
 use std::sync::Arc;
 use std::time::Duration;
@@ -19,6 +19,12 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     struct RocksDB {
         db: Arc<DB>,
         path: Vec<u8>,
+    }
+
+    /// Batch writer.
+    #[pyclass]
+    pub struct WriterBatch {
+        writer: Option<WriteBatch>,
     }
 
     #[pymethods]
@@ -84,6 +90,25 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
             }
         }
 
+        /// Set database entries for list of key and values.
+        ///
+        /// Positional arguments:
+        /// - `batch` (required): Batch writer.
+        fn write(&self, batch: &mut WriterBatch) -> PyResult<()> {
+            let wr = batch.get().unwrap();
+            let len = wr.len();
+
+            match self.db.write(wr) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    return Err(RocksDBError::new_err(format!(
+                        "can not write batch of {} elements: {}",
+                        len, e,
+                    )))
+                }
+            }
+        }
+
         fn get_iter(&mut self) -> PyResult<iterator::RocksDBIterator> {
             Ok(iterator::RocksDBIterator::new(self.db.clone()))
         }
@@ -101,11 +126,71 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
         }
     }
 
+    #[pymethods]
+    impl WriterBatch {
+        #[new]
+        fn new() -> PyResult<Self> {
+            Ok(WriterBatch{writer: Some(WriteBatch::default())})
+        }
+
+        /// Append new "key" and "value" in batch.
+        ///
+        /// Positional arguments:
+        /// - `key` (required): Name for this entry.
+        /// - `value` (required): Data for this entry.
+        fn put(&mut self, key: &PyBytes, value: &PyBytes) -> PyResult<()> {
+            if let Some(inner) = &mut self.writer {
+                Ok(inner.put(key.as_bytes(), value.as_bytes()))
+            } else {
+                Err(RocksDBError::new_err(
+                    "batch writer is invalid. you need to create new one.",
+                ))
+            }
+        }
+
+        /// Remove "key" from batch.
+        ///
+        /// Positional arguments:
+        /// - `key` (required): Name to delete.
+        fn delete(&mut self, key: &PyBytes) -> PyResult<()> {
+            if let Some(inner) = &mut self.writer {
+                Ok(inner.delete(key.as_bytes()))
+            } else {
+                Err(RocksDBError::new_err(
+                    "batch writer is invalid. you need to create new one.",
+                ))
+            }
+        }
+
+        /// Clear the batch.
+        fn clear(&mut self) -> PyResult<()> {
+            if let Some(inner) = &mut self.writer {
+                Ok(inner.clear())
+            } else {
+                Err(RocksDBError::new_err(
+                    "batch writer is invalid. you need to create new one.",
+                ))
+            }
+        }
+    }
+
+    impl WriterBatch {
+        pub fn get(&mut self) -> PyResult<WriteBatch> {
+            if let Some(inner) = self.writer.take() {
+                Ok(inner)
+            } else {
+                Err(RocksDBError::new_err(
+                    "batch writer is invalid. you need to create new one.",
+                ))
+            }
+        }
+    }
+    
     /// Opens a database with default options.
     ///
     /// Positional arguments:
     /// - `path` (required): Path of the database to open.
-    #[pyfn(m, "open_default")]
+    #[pyfn(m, name="open_default")]
     fn open_default(path: &str) -> PyResult<RocksDB> {
         match DB::open_default(path) {
             Ok(db) => Ok(RocksDB {
@@ -126,7 +211,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     /// Positional arguments:
     /// - `path` (required): Path of the database to open.
     /// - `duration` (required): Duration of the TTL.
-    #[pyfn(m, "open_with_ttl")]
+    #[pyfn(m, name="open_with_ttl")]
     fn open_with_ttl(path: &str, ttl: &PyInt) -> PyResult<RocksDB> {
         let secs = ttl.extract::<u64>().unwrap();
         let duration = Duration::from_secs(secs);
@@ -153,7 +238,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     /// Positional arguments:
     /// - `primary_path` (required): Path of the primary database instance.
     /// - `secondary_path` (required): Path of the secondary database to open.
-    #[pyfn(m, "open_as_secondary")]
+    #[pyfn(m, name="open_as_secondary")]
     fn open_as_secondary(primary_path: &str, secondary_path: &str) -> PyResult<RocksDB> {
         match DB::open_as_secondary(&Options::default(), primary_path, secondary_path) {
             Ok(db) => Ok(RocksDB {
@@ -178,7 +263,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     ///
     /// Positional arguments:
     /// - `path` (required): Path of the database to repair.
-    #[pyfn(m, "repair")]
+    #[pyfn(m, name="repair")]
     fn repair(path: &str) -> PyResult<()> {
         match DB::repair(&Options::default(), path) {
             Ok(()) => Ok(()),
@@ -196,7 +281,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     ///
     /// Positional arguments:
     /// - `path` (required): Path of the database to destroy.
-    #[pyfn(m, "destroy")]
+    #[pyfn(m, name="destroy")]
     fn destroy(path: &str) -> PyResult<()> {
         match DB::destroy(&Options::default(), path) {
             Ok(()) => Ok(()),
@@ -210,6 +295,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
     }
 
     m.add_class::<RocksDB>()?;
+    m.add_class::<WriterBatch>()?;
     m.add("RocksDBError", _py.get_type::<RocksDBError>())?;
     Ok(())
 }
