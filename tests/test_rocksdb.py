@@ -145,3 +145,18 @@ def test_open_with_ttl(tmp_path):
     db = rocksdb3.open_with_ttl(str(db_path), int(60))
 
     assert db.get(b'open_with_ttl') is None
+
+
+def test_batch_put(tmp_path):
+    db_path = tmp_path / 'batch_put'
+    db = rocksdb3.open_default(str(db_path))
+
+    assert db.get(b'batch_put_1') is None
+
+    batch = rocksdb3.WriterBatch()
+    batch.put(b"batch_put_1", b"yes_1")
+    batch.put(b"batch_put_2", b"yes_2")
+
+    db.write(batch)
+
+    assert db.get(b'batch_put_1') == b"yes_1"
