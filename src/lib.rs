@@ -139,12 +139,11 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
         /// - `key` (required): Name for this entry.
         /// - `value` (required): Data for this entry.
         fn put(&mut self, key: &PyBytes, value: &PyBytes) -> PyResult<()> {
-            if let Some(inner) = &mut self.writer {
-                Ok(inner.put(key.as_bytes(), value.as_bytes()))
-            } else {
-                Err(RocksDBError::new_err(
+            match &mut self.writer {
+                Some(inner) => Ok(inner.put(key.as_bytes(), value.as_bytes())),
+                None => Err(RocksDBError::new_err(
                     "batch writer is invalid. new writer is required",
-                ))
+                )),
             }
         }
 
@@ -153,23 +152,21 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
         /// Positional arguments:
         /// - `key` (required): Name to delete.
         fn delete(&mut self, key: &PyBytes) -> PyResult<()> {
-            if let Some(inner) = &mut self.writer {
-                Ok(inner.delete(key.as_bytes()))
-            } else {
-                Err(RocksDBError::new_err(
+            match &mut self.writer {
+                Some(inner) => Ok(inner.delete(key.as_bytes())),
+                None => Err(RocksDBError::new_err(
                     "batch writer is invalid. new writer is required",
-                ))
+                )),
             }
         }
 
         /// Clear the batch.
         fn clear(&mut self) -> PyResult<()> {
-            if let Some(inner) = &mut self.writer {
-                Ok(inner.clear())
-            } else {
-                Err(RocksDBError::new_err(
+            match &mut self.writer {
+                Some(inner) => Ok(inner.clear()),
+                None => Err(RocksDBError::new_err(
                     "batch writer is invalid. new writer is required",
-                ))
+                )),
             }
         }
     }
