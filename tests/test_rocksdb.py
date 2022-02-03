@@ -132,9 +132,16 @@ def test_secondary_catch_up_primary(tmp_path):
     secondary_path = tmp_path / 'secondary'
     db_secondary = rocksdb3.open_as_secondary(str(primary_path),
                                               str(secondary_path))
-    assert db_secondary.get(b'author') == None
+    assert db_secondary.get(b'author') is None
     db_primary.put(b'author', b'xyb')
 
     db_secondary.try_catch_up_with_primary()
 
     assert db_secondary.get(b'author') == b'xyb'
+
+
+def test_open_with_ttl(tmp_path):
+    db_path = tmp_path / 'ttl'
+    db = rocksdb3.open_with_ttl(str(db_path), int(60))
+
+    assert db.get(b'open_with_ttl') is None
