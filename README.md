@@ -31,7 +31,12 @@ so why create a new wrapper for rocksdb?
   - [x] open as secondary instance
   - [x] destroy/repair
   - [x] iterator
+    - [ ] iterator with specific prefix
   - [x] write batch
+  - [ ] options
+    - [ ] open options
+    - [ ] read options
+    - [ ] write options
 
 ## Install
 ```
