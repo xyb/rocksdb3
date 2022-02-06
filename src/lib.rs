@@ -90,10 +90,10 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
             }
         }
 
-        /// Set database entries for list of key and values.
+        /// Write apply the given `batch` to the database.
         ///
         /// Positional arguments:
-        /// - `batch` (required): Batch writer.
+        /// - `batch` (required): WriteBatch instance.
         fn write(&self, batch: &mut WriterBatch) -> PyResult<()> {
             let wr = batch.get().unwrap();
             let len = wr.len();
@@ -109,6 +109,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
             }
         }
 
+        /// Opens an iterator using default options.
         fn get_iter(&mut self) -> PyResult<iterator::RocksDBIterator> {
             Ok(iterator::RocksDBIterator::new(self.db.clone()))
         }
@@ -182,7 +183,7 @@ fn rocksdb3(_py: Python, m: &PyModule) -> PyResult<()> {
             }
         }
     }
-    
+
     /// Opens a database with default options.
     ///
     /// Positional arguments:
