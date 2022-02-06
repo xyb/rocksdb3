@@ -13,7 +13,7 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-rocksdb = { version = "0.15.0", features = ["snappy", "lz4", "zstd", "zlib", "bzip2"] }
+rocksdb = { version = "0.17.0", features = ["snappy", "lz4", "zstd", "zlib", "bzip2"] }
 pyo3 = { version = "0.12.0", features = ["extension-module"] }
 
 [package.metadata.maturin]
