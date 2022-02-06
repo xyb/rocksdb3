@@ -6,7 +6,7 @@ import pytest
 try:
     import rocksdb3
 except ModuleNotFoundError:
-    print("Run `maturin develop` first.", file=sys.stderr)
+    print('Run `maturin develop` first.', file=sys.stderr)
     raise
 
 
@@ -150,13 +150,45 @@ def test_open_with_ttl(tmp_path):
 def test_batch_put(tmp_path):
     db_path = tmp_path / 'batch_put'
     db = rocksdb3.open_default(str(db_path))
-
     assert db.get(b'batch_put_1') is None
 
     batch = rocksdb3.WriterBatch()
-    batch.put(b"batch_put_1", b"yes_1")
-    batch.put(b"batch_put_2", b"yes_2")
-
+    batch.put(b'batch_put_1', b'yes_1')
+    batch.put(b'batch_put_2', b'yes_2')
+    assert db.get(b'batch_put_1') is None
     db.write(batch)
 
-    assert db.get(b'batch_put_1') == b"yes_1"
+    assert db.get(b'batch_put_1') == b'yes_1'
+
+
+def test_batch_delete(tmp_path):
+    db_path = tmp_path / 'batch_delete'
+    db = rocksdb3.open_default(str(db_path))
+    db.put(b'hello', b'world')
+    db.put(b'foo', b'bar')
+
+    batch = rocksdb3.WriterBatch()
+    batch.delete(b'hello')
+    batch.delete(b'foo')
+    assert db.get(b'hello') is not None
+    assert db.get(b'foo') is not None
+    db.write(batch)
+
+    assert db.get(b'hello') is None
+    assert db.get(b'foo') is None
+
+
+def test_batch_clear(tmp_path):
+    db_path = tmp_path / 'batch_clear'
+    db = rocksdb3.open_default(str(db_path))
+    db.put(b'hello', b'world')
+    db.put(b'foo', b'bar')
+
+    batch = rocksdb3.WriterBatch()
+    batch.delete(b'hello')
+    batch.put(b'foo', b'foo')
+    batch.clear()
+    db.write(batch)
+
+    assert db.get(b'hello') == b'world'
+    assert db.get(b'foo') == b'bar'
