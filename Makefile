@@ -3,3 +3,6 @@ dev:
 
 build:
 	maturin build
+
+test:
+	pytest -v
